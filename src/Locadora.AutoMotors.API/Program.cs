@@ -1,4 +1,8 @@
+using Locadora.AutoMotors.Application.IRepository;
+using Locadora.AutoMotors.Application.IService;
+using Locadora.AutoMotors.Application.Service;
 using Locadora.AutoMotors.Infrastructure.Context;
+using Locadora.AutoMotors.Infrastructure.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,6 +14,10 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddScoped<IClienteService, ClienteService>();
+builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
+
 
 // String de conexão PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");

@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Locadora.AutoMotors.Domain\Locadora.AutoMotors.Domain.csproj" />
+  </ItemGroup>
+
 </Project>

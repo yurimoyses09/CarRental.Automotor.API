@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Locadora.AutoMotors.Application\Locadora.AutoMotors.Application.csproj" />
     <ProjectReference Include="..\Locadora.AutoMotors.Domain\Locadora.AutoMotors.Domain.csproj" />
   </ItemGroup>
 

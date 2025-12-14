@@ -12,11 +12,12 @@ namespace Locadora.AutoMotors.Domain.Entities
 
         [Key]
         [Column("id")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
         [Required]
         [Column("dt_criacao")]
-        public DateTime DataCriacao { get; set; } = DateTime.Now;
+        public DateTime DataCriacao { get; set; } = DateTime.UtcNow;
 
         [Column("dt_alteracao")]
         public DateTime DataAlteracao { get; set; }

@@ -7,19 +7,19 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 # Copia solution
-COPY *.sln .
+COPY src/*.sln .
 
 # Copia csproj (cache de restore)
-COPY Locadora.AutoMotors.API/Locadora.AutoMotors.API.csproj Locadora.AutoMotors.API/
-COPY Locadora.AutoMotors.Application/Locadora.AutoMotors.Application.csproj Locadora.AutoMotors.Application/
-COPY Locadora.AutoMotors.Domain/Locadora.AutoMotors.Domain.csproj Locadora.AutoMotors.Domain/
-COPY Locadora.AutoMotors.Infrastructure/Locadora.AutoMotors.Infrastructure.csproj Locadora.AutoMotors.Infrastructure/
+COPY src/Locadora.AutoMotors.API/Locadora.AutoMotors.API.csproj Locadora.AutoMotors.API/
+COPY src/Locadora.AutoMotors.Application/Locadora.AutoMotors.Application.csproj Locadora.AutoMotors.Application/
+COPY src/Locadora.AutoMotors.Domain/Locadora.AutoMotors.Domain.csproj Locadora.AutoMotors.Domain/
+COPY src/Locadora.AutoMotors.Infrastructure/Locadora.AutoMotors.Infrastructure.csproj Locadora.AutoMotors.Infrastructure/
 
-# Restore com contexto correto
+# Restore
 RUN dotnet restore
 
-# Copia todo o código (incluindo migrations)
-COPY . .
+# Copia todo o código
+COPY src/. .
 
 # Publish
 WORKDIR /src/Locadora.AutoMotors.API

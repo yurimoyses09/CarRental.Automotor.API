@@ -11,6 +11,13 @@ namespace Locadora.AutoMotors.Domain.Entities
             
         }
 
+        public Cliente(string nome, int idade, string documento)
+        {
+            Nome = nome;
+            Idade = idade;
+            Documento = documento;
+        }
+
         [Required]
         [Column("nome")]
         public string Nome { get; private set; }
