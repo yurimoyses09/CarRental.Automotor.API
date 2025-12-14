@@ -1,0 +1,99 @@
+# Quando houver push na branch develop (merge da PR feature->develop),
+# build da imagem e push para Docker Hub. Ao final, cria PR de develop -> release.
+name: Develop Build & Push to Docker Hub & Create PR to release
+
+on:
+  push:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  # Substitua "repo-name" pelo nome do repositório de imagem no Docker Hub (ex: myapp)
+  IMAGE_NAME: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/repo-name
+
+jobs:
+  build-and-push:
+    name: Build image and Push to Docker Hub (.NET 8)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build (Release)
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test --configuration Release --no-build --verbosity normal
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push image to Docker Hub
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Criar PR de develop -> release se não existir
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const head = 'develop'
+            const base = 'release'
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              head: `${context.repo.owner}:${head}`,
+              base,
+            });
+            if (prs.length === 0) {
+              const title = `chore: ${head} → ${base} (auto PR after image push)`
+              const body = `PR criada automaticamente pela CI após push de imagem a partir da branch \`${head}\` para promover para \`${base}\`.`
+              const { data: pr } = await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                head,
+                base,
+                title,
+                body,
+              });
+              console.log(`PR criada: ${pr.html_url}`)
+            } else {
+              console.log(`PR já existe: ${prs[0].html_url}`)
+            }
