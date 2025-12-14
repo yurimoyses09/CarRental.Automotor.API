@@ -73,26 +73,31 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const head = 'develop'
-            const base = 'release'
-            const { data: prs } = await github.rest.pulls.list({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              head: `${context.repo.owner}:${head}`,
-              base,
-            });
-            if (prs.length === 0) {
-              const title = `chore: ${head} → ${base} (auto PR after image push)`
-              const body = `PR criada automaticamente pela CI após push de imagem a partir da branch \`${head}\` para promover para \`${base}\`.`
-              const { data: pr } = await github.rest.pulls.create({
+            (async () => {
+              const head = 'develop';
+              const base = 'release';
+        
+              const { data: prs } = await github.rest.pulls.list({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                head,
+                state: 'open',
+                head: `${context.repo.owner}:${head}`,
                 base,
-                title,
-                body,
               });
-              console.log(`PR criada: ${pr.html_url}`)
-            } else {
-              console.log(`PR já existe: ${prs[0].html_url}`)
+        
+              if (prs.length === 0) {
+                const title = `chore: ${head} → ${base} (auto PR after image push)`;
+                const body = `PR criada automaticamente pela CI após push de imagem a partir da branch \`${head}\` para promover para \`${base}\`.`;
+                const { data: pr } = await github.rest.pulls.create({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  head,
+                  base,
+                  title,
+                  body,
+                });
+                console.log(`PR criada: ${pr.html_url}`);
+              } else {
+                console.log(`PR já existe: ${prs[0].html_url}`);
+              }
+            })();
