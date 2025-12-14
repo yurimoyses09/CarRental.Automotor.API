@@ -13,7 +13,7 @@ permissions:
 
 env:
   # Substitua "repo-name" pelo nome do repositório de imagem no Docker Hub (ex: myapp)
-  IMAGE_NAME: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/repo-name
+  IMAGE_NAME: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/API-LOCADORA-AUTOMOTORS
 
 jobs:
   build-and-push:
