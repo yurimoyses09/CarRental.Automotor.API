@@ -1,0 +1,85 @@
+# CI: build para branches feature/* e criação automática de PR para develop
+name: Feature Build & Create PR to develop
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  build:
+    name: Build, Test e Validação do Dockerfile (.NET 8)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore src/*.sln
+
+      - name: Build (Release)
+        run: dotnet build src/*.sln --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test src/*.sln --configuration Release --no-build --verbosity normal
+
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Setup Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Validate Dockerfile builds (sem push)
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: myapp:ci-${{ github.sha }}
+
+      - name: Criar PR para develop se não existir
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const headRef = process.env.GITHUB_REF.replace('refs/heads/','')
+            const base = 'develop'
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              head: `${context.repo.owner}:${headRef}`,
+              base,
+            });
+            if (prs.length === 0) {
+              const title = `feat: ${headRef} → ${base} (auto PR)`
+              const body = `PR criada automaticamente pela CI para integrar \`${headRef}\` em \`${base}\`.\n\nCommit: ${process.env.GITHUB_SHA}`
+              const { data: pr } = await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                head: headRef,
+                base,
+                title,
+                body,
+              });
+              console.log(`PR criada: ${pr.html_url}`)
+            } else {
+              console.log(`PR já existe: ${prs[0].html_url}`)
+            }

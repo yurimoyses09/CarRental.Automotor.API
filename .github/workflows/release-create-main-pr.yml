@@ -1,0 +1,49 @@
+# Quando houver push na branch release (merge da PR develop->release),
+# cria automaticamente PR de release -> main (se não existir).
+name: Create PR release -> main
+
+on:
+  push:
+    branches:
+      - release
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  create-pr:
+    name: Criar PR de release -> main
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Criar PR para main se não existir
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const head = 'release'
+            const base = 'main'
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              head: `${context.repo.owner}:${head}`,
+              base,
+            });
+            if (prs.length === 0) {
+              const title = `chore: ${head} → ${base} (auto PR)`
+              const body = `PR criada automaticamente pela CI para promover \`${head}\` para \`${base}\`.`
+              const { data: pr } = await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                head,
+                base,
+                title,
+                body,
+              });
+              console.log(`PR criada: ${pr.html_url}`)
+            } else {
+              console.log(`PR já existe: ${prs[0].html_url}`)
+            }
