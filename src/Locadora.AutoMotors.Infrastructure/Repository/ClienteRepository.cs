@@ -27,7 +27,7 @@ namespace Locadora.AutoMotors.Infrastructure.Repository
             throw new NotImplementedException();
         }
 
-        public Task<Cliente> GetAll()
+        public Task<IEnumerable<Cliente>> GetAll()
         {
             throw new NotImplementedException();
         }

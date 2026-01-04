@@ -7,9 +7,9 @@ namespace Locadora.AutoMotors.Infrastructure.Context
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-        public DbSet<Cliente> Clientes { get; set; }
-        public DbSet<Automovel> Automoveis { get; set; }
-        public DbSet<Domain.Entities.Locadora> Locadoras { get; set; }
+        public DbSet<Cliente> Clientes => Set<Cliente>();
+        public DbSet<Automovel> Automoveis => Set<Automovel>();
+        public DbSet<Domain.Entities.Locadora> Locadoras => Set<Domain.Entities.Locadora>();
 
     }
 }
