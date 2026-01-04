@@ -18,7 +18,6 @@ namespace Locadora.AutoMotors.API.Controllers
             _service = service;
         }
 
-
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateClienteDTO dto)
         {

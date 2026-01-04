@@ -4,7 +4,6 @@ using Locadora.AutoMotors.Application.Service;
 using Locadora.AutoMotors.Infrastructure.Context;
 using Locadora.AutoMotors.Infrastructure.Repository;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +17,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 
+builder.Services.AddScoped<IAutomovelRepository, AutomovelRepository>();
+builder.Services.AddScoped<IAutomovelService, AutomovelService>();
 
 // String de conexão PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
