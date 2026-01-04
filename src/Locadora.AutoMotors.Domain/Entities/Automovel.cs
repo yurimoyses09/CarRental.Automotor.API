@@ -11,13 +11,22 @@ namespace Locadora.AutoMotors.Domain.Entities
             
         }
 
+        public Automovel(string modelo, string anoFabricacao, string placa, string combustivel, string cor)
+        {
+            Modelo = modelo;
+            AnoFabricacao = anoFabricacao;
+            Placa = placa;
+            Combustivel = combustivel;
+            Cor = cor;
+        }
+
         [Required]
         [Column("modelo")]
         public string Modelo { get; private set; }
 
         [Required]
         [Column("ano_fabricacao")]
-        public DateTime AnoFabricacao { get; private set; }
+        public string AnoFabricacao { get; private set; }
 
         [Required]
         [Column("placa")]
