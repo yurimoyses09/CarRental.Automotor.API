@@ -16,38 +16,30 @@ namespace CarRental.Automotor.Infrastructure.Repository
 
         public async Task<Automobile> CreateAsync(Automobile obj)
         {
-            await _context.Automobiles.AddAsync(obj);
+            _context.Automobiles.Add(obj);
             await _context.SaveChangesAsync();
 
             return obj;
         }
 
-        public async Task<int> DeleteByIdAsync(int id)
-        {
-            var item = await _context.Automobiles.FirstOrDefaultAsync(x => x.Id == id);
+        public async Task<int> DeleteByIdAsync(int id) =>
+            await _context.Automobiles.Where(x => x.Id == id)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(p => p.DeleteAt, DateTimeOffset.UtcNow));
 
-            _context.Automobiles.Remove(item);
-            return await _context.SaveChangesAsync();
-        }
+        public async Task<IEnumerable<Automobile>> GetAllAsync() =>     
+            await _context.Automobiles.AsNoTracking().ToListAsync();
 
-        public Task<IEnumerable<Automobile>> GetAllAsync()
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<Automobile?> GetByIdAsync(int id) => 
+            await _context.Automobiles.FindAsync(id);
 
-        public async Task<Automobile> GetByIdAsync(int id)
-        {
-            var obj = await _context.Automobiles.FirstOrDefaultAsync(x => x.Id == id);
-
-            if (obj == null)
-                return null;
-
-            return obj;
-        }
-
-        public Task<Automobile> UpdateAsync(Automobile entity)
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<int> UpdateAsync(Automobile entity) =>
+            await _context.Automobiles.Where(x => x.Id == entity.Id)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(p => p.YearManufacture, entity.YearManufacture)
+                    .SetProperty(p => p.FuelType, entity.FuelType)
+                    .SetProperty(p => p.UpdatedAt, DateTimeOffset.UtcNow)
+                    .SetProperty(p => p.Color, entity.Color)
+                    .SetProperty(p => p.Plate, entity.Plate));
     }
 }

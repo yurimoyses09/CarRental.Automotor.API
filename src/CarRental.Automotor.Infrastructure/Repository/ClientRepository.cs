@@ -16,43 +16,29 @@ namespace CarRental.Automotor.Infrastructure.Repository
 
         public async Task<Client> CreateAsync(Client obj)
         {
-            await _appContext.Clients.AddAsync(obj);
+            _appContext.Clients.Add(obj);
             await _appContext.SaveChangesAsync();
 
             return obj;
         }
 
-        public Task<int> DeleteByIdAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<int> DeleteByIdAsync(int id) =>
+            await _appContext.Clients.Where(x => x.Id == id)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(x => x.DeleteAt, DateTimeOffset.UtcNow));
 
-        public Task<IEnumerable<Client>> GetAllAsync()
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<IEnumerable<Client>> GetAllAsync() =>
+            await _appContext.Clients.AsNoTracking().ToListAsync();
 
-        public async Task<Client> GetByIdAsync(int id)
-        {
-            var entry = await _appContext.Clients.FirstOrDefaultAsync(x => x.Id == id);
+        public async Task<Client?> GetByIdAsync(int id) =>
+            await _appContext.Clients.FindAsync(id);
 
-            if (entry == null) 
-                return null;
-
-            return entry;
-        }
-
-        public async Task<Client> UpdateAsync(Client entity)
-        {
-            var exist = await _appContext.Clients.FirstOrDefaultAsync(x => x.Id == entity.Id);
-
-            if (exist is null)
-                return null;
-
-            _appContext.Entry(exist).CurrentValues.SetValues(entity);
-            await _appContext.SaveChangesAsync();
-
-            return exist;
-        }
+        public async Task<int> UpdateAsync(Client entity) => 
+            await _appContext.Clients.Where(x => x.Id == entity.Id)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(p => p.UpdatedAt, DateTimeOffset.UtcNow)
+                    .SetProperty(p => p.Name, entity.Name)
+                    .SetProperty(p => p.Document, entity.Document)
+                    .SetProperty(p => p.Age, entity.Age));
     }
 }

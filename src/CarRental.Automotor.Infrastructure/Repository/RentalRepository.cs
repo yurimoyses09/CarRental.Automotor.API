@@ -1,4 +1,5 @@
 ﻿using CarRental.Automotor.Application.IRepository;
+using CarRental.Automotor.Domain.Entities;
 using CarRental.Automotor.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,7 +14,7 @@ namespace CarRental.Automotor.Infrastructure.Repository
             _context = context;
         }
 
-        public async Task<Domain.Entities.Rental> CreateAsync(Domain.Entities.Rental obj)
+        public async Task<Rental> CreateAsync(Rental obj)
         {
             await _context.Rentals.AddAsync(obj);
             await _context.SaveChangesAsync();
@@ -21,46 +22,30 @@ namespace CarRental.Automotor.Infrastructure.Repository
             return obj;
         }
 
-        public async Task<int> DeleteByIdAsync(int id)
-        {
-            var entity = await _context.Rentals.FirstOrDefaultAsync(x => x.Id == id);
-            if (entity is not null)
-            {
-                _context.Rentals.Remove(entity);
-                _context.SaveChanges();
+        public async Task<int> DeleteByIdAsync(int id) => 
+            await _context.Rentals.Where(x => x.Id == id)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(p => p.DeleteAt, DateTimeOffset.UtcNow));
 
-                return entity.Id;
-            }
+        public async Task<IEnumerable<Rental>> GetAllAsync() =>
+            await _context.Rentals.AsNoTracking().ToListAsync();
 
-            return 0;
-        }
-
-        public Task<IEnumerable<Domain.Entities.Rental>> GetAllAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<Domain.Entities.Rental> GetByIdAsync(int id)
-        {
-            var entity = await _context.Rentals.FirstOrDefaultAsync(x => x.Id == id);
-
-            if (entity is not null)
-                return entity;
-            return
-                null;
-        }
-
-        public async Task<Domain.Entities.Rental> UpdateAsync(Domain.Entities.Rental obj)
-        {
-            var exist = await _context.Rentals.FirstOrDefaultAsync(x => x.Id == obj.Id);
-
-            if (exist is null)
-                return null;
-
-            _context.Entry(exist).CurrentValues.SetValues(obj);
-            await _context.SaveChangesAsync();
-
-            return exist;
-        }
+        public async Task<Rental?> GetByIdAsync(int id) => 
+            await _context.Rentals.FindAsync(id);
+        
+        public async Task<int> UpdateAsync(Rental obj) => 
+            await _context.Rentals
+                    .Where(x => x.Id == obj.Id)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(x => x.ClientId, obj.ClientId)
+                        .SetProperty(x => x.AutomobileId, obj.AutomobileId)
+                        .SetProperty(x => x.StartDate, obj.StartDate)
+                        .SetProperty(x => x.ExpectedEndDate, obj.ExpectedEndDate)
+                        .SetProperty(x => x.ActualEndDate, obj.ActualEndDate)
+                        .SetProperty(x => x.DailyRate, obj.DailyRate)
+                        .SetProperty(x => x.TotalAmount, obj.TotalAmount)
+                        .SetProperty(x => x.Status, obj.Status)
+                        .SetProperty(x => x.UpdatedAt, DateTimeOffset.UtcNow)
+                    );
     }
 }

@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CarRental.Automotor.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260111040633_FirstMigration")]
-    partial class FirstMigration
+    [Migration("20260111170311_AddDeleteAt")]
+    partial class AddDeleteAt
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -42,6 +42,10 @@ namespace CarRental.Automotor.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("DeleteAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("delete_at");
 
                     b.Property<string>("FuelType")
                         .IsRequired()
@@ -88,6 +92,10 @@ namespace CarRental.Automotor.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("DeleteAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("delete_at");
 
                     b.Property<string>("Document")
                         .IsRequired()
@@ -136,6 +144,10 @@ namespace CarRental.Automotor.Infrastructure.Migrations
                     b.Property<decimal>("DailyRate")
                         .HasColumnType("numeric")
                         .HasColumnName("daily_rate");
+
+                    b.Property<DateTimeOffset>("DeleteAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("delete_at");
 
                     b.Property<DateTimeOffset>("ExpectedEndDate")
                         .HasColumnType("timestamp with time zone")

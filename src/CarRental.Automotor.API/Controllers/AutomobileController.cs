@@ -7,40 +7,49 @@ namespace CarRental.Automotor.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class AutomobileController : ControllerBase
+    public class AutomobileController(IAutomobileService service) : ControllerBase
     {
-        private readonly ILogger<AutomobileController> _logger;
-        private readonly IAutomobileService _service;
-
-        public AutomobileController(ILogger<AutomobileController> logger, IAutomobileService service)
-        {
-            _logger = logger;
-            _service = service;
-        }
+        private readonly IAutomobileService _service = service;
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateAutomobileDTO dto)
         {
-            _logger.LogInformation($"Criando registro do Automobile {dto.Plate}");
-            var result = await _service.CreateAsync(AutomobileMapper.ToEntity(dto));
+            var entity = AutomobileMapper.ToEntity(dto);
+            var result = await _service.CreateAsync(entity);
 
-            _logger.LogInformation($"Automobile criado com sucesso {dto.Plate}");
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            var resultDto = AutomobileMapper.ToDto(result);
+
+            return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
         }
 
-        [HttpGet("/{id}")]
-        public async Task<IActionResult> GetById(int id)
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<GetAutomobileDTO>> GetById(int id)
         {
-            _logger.LogInformation($"Obtendo dados do Automobile com id {id}");
             var result = await _service.GetByIdAsync(id);
 
             if (result is null) 
-            {
-                _logger.LogInformation($"Automobile com id {id} não existe no sistema.");
                 return NotFound();
-            }
 
             return Ok(AutomobileMapper.ToDto(result));
+        }
+
+        [HttpPut("/{id:int}")]
+        public async Task<IActionResult> Update(int id, UpdateAutomobileDTO dto)
+        {
+            var entity = AutomobileMapper.ToEntity(dto, id);
+            var updated = await _service.UpdateAsync(entity);
+
+            if (updated == 0) return NotFound();
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> DeleteById(int id)
+        {
+            var result = await _service.DeleteByIdAsync(id);
+            if (result == 0) return NotFound();
+            return NoContent();
         }
     }
 }

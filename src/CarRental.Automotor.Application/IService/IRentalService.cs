@@ -4,8 +4,9 @@ namespace CarRental.Automotor.Application.IService
 {
     public interface IRentalService
     {
-        Task<Rental> CreateAsync(Rental locadora);
-        Task<Rental> UpdateAsync(Rental locadora);
-        Task<Rental> GetByIdAsync(int id);
+        Task<Rental> CreateAsync(Rental rental);
+        Task<int> UpdateAsync(Rental rental);
+        Task<Rental?> GetByIdAsync(int id);
+        Task<int> DeleteByIdAsync(int id);
     }
 }

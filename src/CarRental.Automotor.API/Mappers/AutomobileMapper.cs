@@ -20,5 +20,8 @@ namespace CarRental.Automotor.API.Mappers
                 Plate = Automobile.Plate
             };
         }
+
+        public static Automobile ToEntity(UpdateAutomobileDTO dto, int id)
+            => new(dto.Model, dto.YearManufacture, dto.Plate, dto.FuelType, dto.Color, id);
     }
 }

@@ -18,6 +18,14 @@ namespace CarRental.Automotor.Domain.Entities
             Document = document;
         }
 
+        public Client(string name, int age, string document, int id) : base()
+        {
+            Id = id;
+            Name = name;
+            Age = age;
+            Document = document;
+        }
+
         [Required]
         [Column("name")]
         public string Name { get; private set; }

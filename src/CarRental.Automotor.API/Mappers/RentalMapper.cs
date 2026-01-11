@@ -19,9 +19,23 @@ namespace CarRental.Automotor.API.Mappers
             );
 
 
+        public static Rental ToEntity(UpdateRentalDTO dto, int id)
+            => new(
+                dto.ClientId,
+                dto.AutomobileId,
+                dto.StartDate,
+                dto.ExpectedEndDate,
+                null,
+                dto.DailyRate,
+                dto.TotalAmount,
+                dto.Status,
+                id
+            );
+
         public static GetRentalDTO ToDto(Rental result)
             =>  new()
             {
+                Id = result.Id,
                 ClientId = result.ClientId,
                 AutomobileId = result.AutomobileId,
                 StartDate = result.StartDate,

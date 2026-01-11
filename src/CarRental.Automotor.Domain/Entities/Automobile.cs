@@ -20,6 +20,17 @@ namespace CarRental.Automotor.Domain.Entities
             Color = color;
         }
 
+        public Automobile(string model, string yearManufacture, string plate, string fuelType, string color, int id) : base()
+        {
+            Id = id;
+            Model = model;
+            YearManufacture = yearManufacture;
+            Plate = plate;
+            FuelType = fuelType;
+            Color = color;
+        }
+
+
         [Required]
         [Column("model")]
         public string Model { get; private set; }

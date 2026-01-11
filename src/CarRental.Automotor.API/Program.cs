@@ -1,9 +1,7 @@
-using Microsoft.EntityFrameworkCore;
-using CarRental.Automotor.Application.IRepository;
-using CarRental.Automotor.Application.IService;
-using CarRental.Automotor.Application.Service;
-using CarRental.Automotor.Infrastructure.Repository;
 using CarRental.Automotor.Infrastructure.Context;
+using CarRental.Automotor.Infrastructure.Middlewares;
+using Microsoft.EntityFrameworkCore;
+using CarRental.Automotor.Infrastructure.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,14 +12,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<IClientService, ClientService>();
-builder.Services.AddScoped<IClientRepository, ClientRepository>();
-
-builder.Services.AddScoped<IAutomobileRepository, AutomobileRepository>();
-builder.Services.AddScoped<IAutomobileService, AutomobileService>();
-
-builder.Services.AddScoped<IRentalService, RentalService>();
-builder.Services.AddScoped<IRentalRepository, RentalRepository>();
+builder.Services.AddInfrastructure();
 
 // String de conexão PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -31,6 +22,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 var app = builder.Build();
+
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 using (var scope = app.Services.CreateScope())
 {

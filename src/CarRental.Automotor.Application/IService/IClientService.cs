@@ -5,7 +5,8 @@ namespace CarRental.Automotor.Application.IService
     public interface IClientService
     {
         Task<Client> CreateAsync(Client cliente);
-        Task<Client> UpdateAsync(Client cliente);
-        Task<Client> GetByIdAsync(int id);
-    }
+        Task<int> UpdateAsync(Client cliente);
+        Task<Client?> GetByIdAsync(int id);
+        Task<int> DeleteByIdAsync(int id);
+     }
 }

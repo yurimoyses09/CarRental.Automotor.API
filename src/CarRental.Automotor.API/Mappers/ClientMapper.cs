@@ -8,6 +8,11 @@ namespace CarRental.Automotor.API.Mappers
         public static Client ToEntity(CreateClientDTO dto) => 
             new(dto.Name, dto.Age, dto.Document);
 
+
+        public static Client ToEntity(UpdateClientDTO dto, int id) =>
+            new(dto.Name, dto.Age, dto.Document, id);
+
+
         public static GetClientDTO ToDto(Client cliente) =>
             new()
             {

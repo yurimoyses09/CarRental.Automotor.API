@@ -16,10 +16,13 @@ namespace CarRental.Automotor.Application.Service
         public async Task<Automobile> CreateAsync(Automobile Automobile) 
             => await _repository.CreateAsync(Automobile);
 
-        public async Task<Automobile> GetByIdAsync(int id) 
+        public async Task<int> DeleteByIdAsync(int id)
+            => await _repository.DeleteByIdAsync(id);
+
+        public async Task<Automobile?> GetByIdAsync(int id) 
             => await _repository.GetByIdAsync(id);
 
-        public async Task<Automobile> UpdateAsync(Automobile Automobile) 
+        public async Task<int> UpdateAsync(Automobile Automobile) 
             => await _repository.UpdateAsync(Automobile);
     }
 }

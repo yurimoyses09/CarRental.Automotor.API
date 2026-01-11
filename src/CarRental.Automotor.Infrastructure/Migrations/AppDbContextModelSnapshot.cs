@@ -40,6 +40,10 @@ namespace CarRental.Automotor.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<DateTimeOffset>("DeleteAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("delete_at");
+
                     b.Property<string>("FuelType")
                         .IsRequired()
                         .HasColumnType("text")
@@ -85,6 +89,10 @@ namespace CarRental.Automotor.Infrastructure.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("DeleteAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("delete_at");
 
                     b.Property<string>("Document")
                         .IsRequired()
@@ -133,6 +141,10 @@ namespace CarRental.Automotor.Infrastructure.Migrations
                     b.Property<decimal>("DailyRate")
                         .HasColumnType("numeric")
                         .HasColumnName("daily_rate");
+
+                    b.Property<DateTimeOffset>("DeleteAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("delete_at");
 
                     b.Property<DateTimeOffset>("ExpectedEndDate")
                         .HasColumnType("timestamp with time zone")

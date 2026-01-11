@@ -21,6 +21,19 @@ namespace CarRental.Automotor.Domain.Entities
             Status = status;
         }
 
+        public Rental(int clientId, int automobileId, DateTimeOffset startDate, DateTimeOffset expectedEndDate, DateTimeOffset? actualEndDate, decimal dailyRate, decimal? totalAmount, RentalStatus status, int id) : base()
+        {
+            Id = id;
+            ClientId = clientId;
+            AutomobileId = automobileId;
+            StartDate = startDate;
+            ExpectedEndDate = expectedEndDate;
+            ActualEndDate = actualEndDate;
+            DailyRate = dailyRate;
+            TotalAmount = totalAmount;
+            Status = status;
+        }
+
         [Column("client_id")]
         [Required]
         public int ClientId { get; private set; }

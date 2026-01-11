@@ -16,20 +16,16 @@ namespace CarRental.Automotor.Application.Service
         public async Task<Client> CreateAsync(Client cliente) 
             => await _clientRepository.CreateAsync(cliente);
 
-        public Task<int> DeleteByIdAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<int> DeleteByIdAsync(int id) =>
+            await _clientRepository.DeleteByIdAsync(id);
 
-        public Task<IEnumerable<Client>> GetAllAsync()
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<IEnumerable<Client>> GetAllAsync() => 
+            await _clientRepository.GetAllAsync();
 
-        public async Task<Client> GetByIdAsync(int id) 
+        public async Task<Client?> GetByIdAsync(int id) 
             => await _clientRepository.GetByIdAsync(id);
 
-        public async Task<Client> UpdateAsync(Client cliente) 
+        public async Task<int> UpdateAsync(Client cliente) 
             => await _clientRepository.UpdateAsync(cliente);
     }
 }

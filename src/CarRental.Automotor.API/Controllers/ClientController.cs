@@ -7,25 +7,22 @@ namespace CarRental.Automotor.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class ClientController : ControllerBase
+    public class ClientController(IClientService service) : ControllerBase
     {
-        private readonly ILogger<ClientController> _logger;
-        private readonly IClientService _service;
-
-        public ClientController(ILogger<ClientController> logger, IClientService service)
-        {
-            _logger = logger;
-            _service = service;
-        }
+        private readonly IClientService _service = service;
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateClientDTO dto)
         {
-            var result = await _service.CreateAsync(ClientMapper.ToEntity(dto));
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            var entity = ClientMapper.ToEntity(dto);
+            var result = await _service.CreateAsync(entity);
+
+            var resultDto = ClientMapper.ToDto(result);
+
+            return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
         }
 
-        [HttpGet("/{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
             var result = await _service.GetByIdAsync(id);
@@ -34,6 +31,25 @@ namespace CarRental.Automotor.API.Controllers
                 return NotFound();
 
             return Ok(ClientMapper.ToDto(result));
+        }
+
+        [HttpPut("/{id:int}")]
+        public async Task<IActionResult> Update(int id, UpdateClientDTO dto)
+        {
+            var entity = ClientMapper.ToEntity(dto, id);
+            var updated = await _service.UpdateAsync(entity);
+
+            if (updated == 0) return NotFound();
+
+            return NoContent();
+        }
+
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> DeleteById(int id)
+        {
+            var result = await _service.DeleteByIdAsync(id);
+            if (result == 0) return NotFound();
+            return NoContent();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using CarRental.Automotor.Application.IRepository;
 using CarRental.Automotor.Application.IService;
+using CarRental.Automotor.Domain.Entities;
 
 namespace CarRental.Automotor.Application.Service
 {
@@ -12,13 +13,16 @@ namespace CarRental.Automotor.Application.Service
             _repository = repository;
         }
 
-        public async Task<Domain.Entities.Rental> CreateAsync(Domain.Entities.Rental locadora)
-            => await _repository.CreateAsync(locadora);
+        public async Task<Rental> CreateAsync(Rental rental)
+            => await _repository.CreateAsync(rental);
 
-        public async Task<Domain.Entities.Rental> GetByIdAsync(int id)
+        public Task<int> DeleteByIdAsync(int id)
+            => _repository.DeleteByIdAsync(id);
+            
+        public async Task<Rental?> GetByIdAsync(int id)
             => await _repository.GetByIdAsync(id);
 
-        public async Task<Domain.Entities.Rental> UpdateAsync(Domain.Entities.Rental locadora)
-            => await _repository.UpdateAsync(locadora);
+        public async Task<int> UpdateAsync(Rental rental)
+            => await _repository.UpdateAsync(rental);
     }
 }

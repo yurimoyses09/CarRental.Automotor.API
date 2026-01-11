@@ -21,5 +21,8 @@ namespace CarRental.Automotor.Domain.Entities
 
         [Column("updated_at")]
         public DateTimeOffset? UpdatedAt { get; set; }
+
+        [Column("delete_at")]
+        public DateTimeOffset DeleteAt { get; set; }
     }
 }
