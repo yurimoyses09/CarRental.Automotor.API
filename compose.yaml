@@ -19,7 +19,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: locadora-automotors-api:latest
+    image: car-rental-automotors:latest
     depends_on:
       database:
         condition: service_healthy
