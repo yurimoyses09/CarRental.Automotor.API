@@ -23,7 +23,7 @@ builder.Services.AddScoped<IAutomobileService, AutomobileService>();
 builder.Services.AddScoped<IRentalService, RentalService>();
 builder.Services.AddScoped<IRentalRepository, RentalRepository>();
 
-// String de conex„o PostgreSQL
+// String de conex√£o PostgreSQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Registrar DbContext
