@@ -10,10 +10,10 @@ WORKDIR /src
 COPY src/*.sln .
 
 # Copia csproj (cache de restore)
-COPY src/Locadora.AutoMotors.API/Locadora.AutoMotors.API.csproj Locadora.AutoMotors.API/
-COPY src/Locadora.AutoMotors.Application/Locadora.AutoMotors.Application.csproj Locadora.AutoMotors.Application/
-COPY src/Locadora.AutoMotors.Domain/Locadora.AutoMotors.Domain.csproj Locadora.AutoMotors.Domain/
-COPY src/Locadora.AutoMotors.Infrastructure/Locadora.AutoMotors.Infrastructure.csproj Locadora.AutoMotors.Infrastructure/
+COPY src/CarRental.Automotor.API/CarRental.Automotor.API.csproj CarRental.Automotor.API/
+COPY src/CarRental.Automotor.Application/CarRental.Automotor.Application.csproj CarRental.Automotor.Application/
+COPY src/CarRental.Automotor.Domain/CarRental.Automotor.Domain.csproj CarRental.Automotor.Domain/
+COPY src/CarRental.Automotor.Infrastructure/CarRental.Automotor.Infrastructure.csproj CarRental.Automotor.Infrastructure/
 
 # Restore
 RUN dotnet restore
@@ -22,7 +22,7 @@ RUN dotnet restore
 COPY src/. .
 
 # Publish
-WORKDIR /src/Locadora.AutoMotors.API
+WORKDIR /src/CarRental.Automotor.API
 RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 
 ################################
@@ -36,4 +36,4 @@ COPY --from=build /app/publish .
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
-ENTRYPOINT ["dotnet", "Locadora.AutoMotors.API.dll"]
+ENTRYPOINT ["dotnet", "CarRental.Automotor.API.dll"]
