@@ -1,15 +1,11 @@
 using Microsoft.EntityFrameworkCore;
-using CarRental.Automotor.Application.IRepository;
-using CarRental.Automotor.Application.IService;
-using CarRental.Automotor.Application.Service;
-using CarRental.Automotor.Infrastructure.Repository;
-using CarRental.Automotor.Infrastructure.Context;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
 
+builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -17,8 +13,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IClientService, ClientService>();
 builder.Services.AddScoped<IClientRepository, ClientRepository>();
 
-builder.Services.AddScoped<IAutomobileRepository, AutomobileRepository>();
-builder.Services.AddScoped<IAutomobileService, AutomobileService>();
 
 builder.Services.AddScoped<IRentalService, RentalService>();
 builder.Services.AddScoped<IRentalRepository, RentalRepository>();
