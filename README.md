@@ -1,107 +1,204 @@
-# Locadora.AutoMotors
+# CarRental.Automotor.API
 
-Uma breve descrição do projeto. Explique em 1–2 linhas o que é a aplicação e qual problema ela resolve.
+API para gerenciar uma locadora de automóveis: cadastro de clientes e automóveis, aluguéis e pagamentos. Ao registrar um pagamento de aluguel, a API publica um evento no RabbitMQ para que outros sistemas possam reagir a ele.
 
 ## Status
-- Status do projeto: (Ex.: Em desenvolvimento / Em produção / Protótipo)
-- Última atualização: YYYY-MM-DD
-
-## Demonstração
-- Link para demo (se houver)
-- Capturas de tela rápidas (opcional)
+- Status do projeto: Em desenvolvimento (protótipo com pagamento simulado)
+- Última atualização: 2026-10-23
 
 ## Tecnologias
-- Linguagens: (Ex.: C#, JavaScript, etc.)
-- Frameworks / Bibliotecas principais:
-  - ...
-- Banco de dados:
-- Outras ferramentas:
+- Linguagem: C# (.NET 8)
+- Frameworks / bibliotecas principais:
+  - ASP.NET Core Web API
+  - Entity Framework Core 8 com Npgsql (PostgreSQL)
+  - RabbitMQ.Client 7 (mensageria)
+  - Swashbuckle (Swagger)
+  - xUnit e Moq (testes)
+- Banco de dados: PostgreSQL 15
+- Mensageria: RabbitMQ 3 (com painel de gerenciamento)
+- Outras ferramentas: Docker, Docker Compose, GitHub Actions
 
 ## Funcionalidades
-- [ ] Funcionalidade principal 1
-- [ ] Funcionalidade principal 2
-- [ ] Funcionalidade futura 3
+- [x] Cadastro, consulta, atualização e remoção lógica de clientes
+- [x] Cadastro, consulta, atualização e remoção lógica de automóveis
+- [x] Criação, consulta, atualização e remoção lógica de aluguéis
+- [x] Simulação de pagamento de aluguel, com consulta por ID
+- [x] Publicação de evento no RabbitMQ a cada pagamento processado
+- [ ] Integração com gateway de pagamento real
+
+## Como funciona
+
+### Entidades
+- **Client**: nome, idade e documento.
+- **Automobile**: modelo, ano de fabricação, placa, tipo de combustível e cor.
+- **Rental**: cliente, automóvel, datas de início e previsão de devolução, diária, valor total e status (`Active`, `Completed`, `Canceled`, `Pending`).
+- **Payment**: aluguel associado, valor, status (`Pending`, `Approved`, `Declined`) e data do pagamento.
+
+A exclusão é lógica: o registro recebe uma data em `delete_at` e não é removido do banco.
+
+### Fluxo de pagamento
+1. O cliente envia `POST /Payment` com o `rental_id` e o `amount`.
+2. A API valida o valor (precisa ser maior que zero) e verifica se o aluguel existe.
+3. O pagamento é simulado como aprovado: o status vira `Approved` e `paid_at` recebe a data atual.
+4. O pagamento é salvo no PostgreSQL.
+5. Um evento é publicado na fila `payment.processed` do RabbitMQ.
+6. A API responde com `201 Created` e os dados do pagamento.
+
+Exemplo de mensagem publicada na fila:
+
+```json
+{
+  "PaymentId": 1,
+  "RentalId": 1,
+  "Amount": 300.00,
+  "Status": 2,
+  "PaidAt": "2026-10-23T21:00:00+00:00"
+}
+```
+
+O campo `Status` é numérico (1 = Pending, 2 = Approved, 3 = Declined).
+
+### Endpoints
+
+| Método | Rota | Descrição | Resposta |
+|---|---|---|---|
+| POST | `/Client` | Cria um cliente | 201 |
+| GET | `/Client/{id}` | Consulta um cliente | 200 / 404 |
+| PUT | `/{id}` | Atualiza um cliente | 204 / 404 |
+| DELETE | `/Client/{id}` | Remove um cliente (lógico) | 204 / 404 |
+| POST | `/Automobile` | Cria um automóvel | 201 |
+| GET | `/Automobile/{id}` | Consulta um automóvel | 200 / 404 |
+| PUT | `/{id}` | Atualiza um automóvel | 204 / 404 |
+| DELETE | `/Automobile/{id}` | Remove um automóvel (lógico) | 204 / 404 |
+| POST | `/Rental` | Cria um aluguel | 201 |
+| GET | `/{id}` | Consulta um aluguel | 200 / 404 |
+| PUT | `/{id}` | Atualiza um aluguel | 204 / 404 |
+| DELETE | `/Rental/{id}` | Remove um aluguel (lógico) | 204 / 404 |
+| POST | `/Payment` | Simula o pagamento de um aluguel e publica o evento | 201 / 400 / 404 |
+| GET | `/Payment/{id}` | Consulta um pagamento | 200 / 404 |
+
+Exemplo de pagamento:
+
+```bash
+curl -X POST http://localhost:5000/Payment \
+  -H "Content-Type: application/json" \
+  -d '{"rental_id": 1, "amount": 300.00}'
+```
+
+Resposta:
+
+```json
+{
+  "id": 1,
+  "rental_id": 1,
+  "amount": 300.00,
+  "status": 2,
+  "paid_at": "2026-10-23T21:00:00+00:00"
+}
+```
+
+Consulta do pagamento:
+
+```bash
+curl http://localhost:5000/Payment/1
+```
+
+Os erros seguem o formato `ProblemDetails`, retornado pelo `GlobalExceptionMiddleware`: valor inválido gera 400 e aluguel inexistente gera 404.
 
 ## Pré-requisitos
-Liste programas e versões necessárias, por exemplo:
-- .NET SDK x.x.x
-- Node.js x.x.x
-- Banco de dados (Ex.: PostgreSQL, SQL Server) — versão e configuração básica
-
-## Instalação
-Passos mínimos para deixar o projeto rodando localmente:
-1. Clone o repositório
-   git clone https://github.com/yurimoyses09/Locadora.AutoMotors.git
-2. Entre no diretório
-   cd Locadora.AutoMotors
-3. Instale dependências
-   - Ex.: dotnet restore / npm install
-4. Configure variáveis de ambiente / arquivo de configuração
-   - Ex.: copiar .env.example para .env e ajustar valores
-
-## Configuração
-Explique onde colocar credenciais, strings de conexão e outras configurações:
-- ARQUIVO_EXEMPLO: descreva campos principais
-- Como gerar chaves / tokens (se necessário)
+- Docker e Docker Compose (para rodar tudo em containers)
+- Para rodar a API fora do Docker: .NET SDK 8.0
 
 ## Como executar
-Comandos básicos para rodar a aplicação:
-- Rodar em desenvolvimento:
-  - Ex.: dotnet run --project src/Locadora.AutoMotors
-- Build para produção:
-  - Ex.: dotnet publish -c Release
-- Comandos auxiliares (migrations, seed, etc.)
+
+### Opção 1: tudo com Docker Compose
+1. Clone o repositório e entre na pasta:
+   ```bash
+   git clone https://github.com/yurimoyses09/CarRental.Automotor.API.git
+   cd CarRental.Automotor.API
+   ```
+2. Suba os containers (API, PostgreSQL e RabbitMQ):
+   ```bash
+   docker compose up --build
+   ```
+3. Acesse:
+   - API e Swagger: http://localhost:5000/swagger
+   - Painel do RabbitMQ: http://localhost:15672 (usuário `guest`, senha `guest`)
+   - PostgreSQL: `localhost:5432`, banco `AutoMotorsDB`, usuário `admin`, senha `admin`
+
+As migrations são aplicadas automaticamente quando a API inicia.
+
+### Opção 2: API local com banco e RabbitMQ no Docker
+1. Suba apenas o banco e o RabbitMQ:
+   ```bash
+   docker compose up -d database rabbitmq
+   ```
+2. Rode a API:
+   ```bash
+   dotnet run --project src/CarRental.Automotor.API
+   ```
+3. Acesse o Swagger em http://localhost:5194/swagger.
+
+As configurações de desenvolvimento (`appsettings.Development.json`) já apontam para `localhost`.
+
+Para acompanhar os eventos: no painel do RabbitMQ, abra a aba **Queues** e a fila `payment.processed`. Depois de um pagamento, a mensagem aparece em **Get messages**.
+
+## Configuração
+
+| Chave | Onde | Padrão | Descrição |
+|---|---|---|---|
+| `ConnectionStrings:DefaultConnection` | `appsettings.Development.json` | `localhost:5432` | Conexão com o PostgreSQL |
+| `RabbitMq:HostName` | `appsettings.json` | `localhost` | Host do RabbitMQ |
+| `RabbitMq:Port` | `appsettings.json` | `5672` | Porta AMQP |
+| `RabbitMq:UserName` / `Password` | `appsettings.json` | `guest` / `guest` | Credenciais do RabbitMQ |
+| `RabbitMq:PaymentQueueName` | `appsettings.json` | `payment.processed` | Nome da fila de pagamentos |
+
+No Docker Compose, essas chaves são sobrescritas por variáveis de ambiente (por exemplo, `RabbitMq__HostName=rabbitmq`). As credenciais do `compose.yaml` são apenas para desenvolvimento.
 
 ## Testes
-Como executar a suíte de testes:
-- Ex.: dotnet test
-- Observações sobre testes unitários / integração
+Os testes unitários ficam em `src/CarRental.Automotor.Tests` e cobrem:
+- regras da entidade `Payment` (estado inicial e aprovação);
+- `PaymentService` (aprovação, publicação do evento, aluguel inexistente, valor inválido e consulta);
+- `PaymentMapper` (conversão entre DTOs e entidade).
+
+Para executar:
+
+```bash
+dotnet test src/CarRental.Automotor.API.sln
+```
+
+O pipeline de CI executa os testes em cada push para branches `feature/**` e `develop`.
 
 ## Estrutura do projeto
-Raiz e pastas principais com breve descrição:
-- /src — código fonte da aplicação
-- /tests — testes automatizados
-- /docs — documentação adicional
-- /scripts — scripts úteis (migrações, seed, deploy)
-- README.md — este arquivo
 
-## Scripts úteis
-Liste os comandos mais usados:
-- start — inicia a aplicação
-- build — build da aplicação
-- test — executa testes
-- migrate — aplica migrações
-
-## Deploy
-Informações básicas sobre como fazer deploy (opcional):
-- Plataformas suportadas (Heroku, Azure, AWS, Docker)
-- Passos/recursos essenciais
-
-## Contribuição
-Regras rápidas para quem quiser contribuir:
-- Fork → branch → PR
-- Guia de estilo / lint (se houver)
-- Processo de revisão
-
-## Roadmap
-Itens planejados / melhorias:
-- Curto prazo:
-  - Item A
-- Médio prazo:
-  - Item B
-- Longo prazo:
-  - Item C
+```
+src/
+├── CarRental.Automotor.API/             # Controllers, DTOs, mappers e Program.cs
+├── CarRental.Automotor.Application/     # Interfaces, serviços e eventos da aplicação
+├── CarRental.Automotor.Domain/          # Entidades e enums
+├── CarRental.Automotor.Infrastructure/  # EF Core, repositórios, migrations e RabbitMQ
+└── CarRental.Automotor.Tests/           # Testes unitários (xUnit e Moq)
+.github/workflows/                       # Pipelines de build, teste e publicação da imagem
+Dockerfile                               # Imagem da API
+compose.yaml                             # API, PostgreSQL e RabbitMQ
+```
 
 ## Problemas conhecidos
-- Lista de bugs ou limitações atuais
+- As rotas de `GET` e `PUT` de `Rental`, `Client` e `Automobile` usam caminho absoluto (`/{id}`) em vez de `/Rental/{id}`, `/Client/{id}` e `/Automobile/{id}`. Isso não foi alterado neste projeto para não quebrar quem já usa essas rotas.
+- O pagamento é salvo antes da publicação do evento e não há outbox. Se o RabbitMQ estiver indisponível, o pagamento fica salvo, mas a requisição retorna erro 500.
+- O pagamento é apenas simulado: todo pagamento é aprovado e não há integração com gateway.
+- Não há consumidor da fila; a API só publica os eventos.
+- Uma conexão com o RabbitMQ é aberta a cada publicação. Isso é simples, mas não é o mais eficiente para produção.
 
 ## Licença
-Insira a licença do projeto (Ex.: MIT). Se ainda não decidiu, escreva "A definir".
+A definir.
 
 ## Contato
-- Autor / Maintainer: Yuri Moyses (yurimoyses09)
-- Email: seu-email@exemplo.com
-- Link do repositório: https://github.com/yurimoyses09/Locadora.AutoMotors
+- Autor / Maintainer: Yuri Moysés (yurimoyses09)
+- Repositório: https://github.com/yurimoyses09/CarRental.Automotor.API
 
-## Agradecimentos
-Créditos, bibliotecas e referências externas que ajudaram no desenvolvimento.
+## Links úteis
+- [Documentação do ASP.NET Core](https://learn.microsoft.com/pt-br/aspnet/core/)
+- [Documentação do Entity Framework Core](https://learn.microsoft.com/pt-br/ef/core/)
+- [Tutoriais do RabbitMQ](https://www.rabbitmq.com/getstarted.html)
+- [Documentação do Docker Compose](https://docs.docker.com/compose/)
