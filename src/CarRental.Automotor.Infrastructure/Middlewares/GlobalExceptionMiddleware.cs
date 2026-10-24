@@ -56,7 +56,7 @@ namespace CarRental.Automotor.Infrastructure.Middlewares
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = statusCode;
 
-            var json = JsonSerializer.Serialize(payload, JsonSerializerOptions.Default);
+            var json = JsonSerializer.Serialize(payload, JsonSerializerOptions.Web);
             await context.Response.WriteAsync(json);
         }
 
