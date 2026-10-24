@@ -31,7 +31,7 @@ API para gerenciar uma locadora de automóveis: cadastro de clientes e automóve
 ### Entidades
 - **Client**: nome, idade e documento.
 - **Automobile**: modelo, ano de fabricação, placa, tipo de combustível e cor.
-- **Rental**: cliente, automóvel, datas de início e previsão de devolução, diária, valor total e status (`Active`, `Completed`, `Canceled`, `Pending`).
+- **Rental**: cliente, automóvel, datas de início e previsão de devolução, diária e status (`Active`, `Completed`, `Canceled`, `Pending`). O valor total é calculado pela API: `diária × dias`, em que dias parciais contam como dia inteiro e o mínimo é 1 dia. Se a devolução prevista for anterior à retirada, o aluguel é recusado com 422. O cálculo não considera atrasos nem `actual_end_date`.
 - **Payment**: aluguel associado, valor, status (`Pending`, `Approved`, `Declined`) e data do pagamento.
 
 A exclusão é lógica: o registro recebe uma data em `delete_at` e não é removido do banco.
@@ -70,7 +70,7 @@ O campo `Status` é numérico (1 = Pending, 2 = Approved, 3 = Declined).
 | GET | `/Automobile/{id}` | Consulta um automóvel | 200 / 404 |
 | PUT | `/{id}` | Atualiza um automóvel | 204 / 404 |
 | DELETE | `/Automobile/{id}` | Remove um automóvel (lógico) | 204 / 404 |
-| POST | `/Rental` | Cria um aluguel | 201 |
+| POST | `/Rental` | Cria um aluguel (o total é calculado pela API) | 201 / 422 |
 | GET | `/{id}` | Consulta um aluguel | 200 / 404 |
 | PUT | `/{id}` | Atualiza um aluguel | 204 / 404 |
 | DELETE | `/Rental/{id}` | Remove um aluguel (lógico) | 204 / 404 |
