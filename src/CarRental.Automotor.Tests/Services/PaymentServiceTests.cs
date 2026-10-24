@@ -4,6 +4,7 @@ using CarRental.Automotor.Application.IService;
 using CarRental.Automotor.Application.Service;
 using CarRental.Automotor.Domain.Entities;
 using CarRental.Automotor.Domain.Enums;
+using CarRental.Automotor.Domain.Exceptions;
 using Moq;
 using Xunit;
 
@@ -59,11 +60,11 @@ namespace CarRental.Automotor.Tests.Services
         }
 
         [Fact]
-        public async Task CreateAsync_WhenAmountDiffersFromRentalTotal_ThrowsArgumentExceptionAndDoesNotSave()
+        public async Task CreateAsync_WhenAmountDiffersFromRentalTotal_ThrowsBusinessExceptionAndDoesNotSave()
         {
             _rentalRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(CreateRental(1));
 
-            await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateAsync(new Payment(1, 250m)));
+            await Assert.ThrowsAsync<BusinessException>(() => _service.CreateAsync(new Payment(1, 250m)));
 
             _paymentRepository.Verify(r => r.CreateAsync(It.IsAny<Payment>()), Times.Never);
             _eventPublisher.Verify(p => p.PublishPaymentProcessedAsync(It.IsAny<PaymentProcessedEvent>()), Times.Never);

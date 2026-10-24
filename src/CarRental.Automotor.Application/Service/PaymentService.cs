@@ -2,6 +2,7 @@ using CarRental.Automotor.Application.Events;
 using CarRental.Automotor.Application.IRepository;
 using CarRental.Automotor.Application.IService;
 using CarRental.Automotor.Domain.Entities;
+using CarRental.Automotor.Domain.Exceptions;
 
 namespace CarRental.Automotor.Application.Service
 {
@@ -30,7 +31,7 @@ namespace CarRental.Automotor.Application.Service
                 ?? throw new KeyNotFoundException($"Rental {payment.RentalId} was not found.");
 
             if (payment.Amount != rental.TotalAmount)
-                throw new ArgumentException("The payment amount must be equal to the rental total amount.");
+                throw new BusinessException("The payment amount must be equal to the rental total amount.");
 
             // Simulação: o pagamento é aprovado imediatamente.
             payment.Approve();

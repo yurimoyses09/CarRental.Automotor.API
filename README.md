@@ -38,7 +38,7 @@ A exclusão é lógica: o registro recebe uma data em `delete_at` e não é remo
 
 ### Fluxo de pagamento
 1. O cliente envia `POST /Payment` com o `rental_id` e o `amount`.
-2. A API valida o valor (precisa ser maior que zero), verifica se o aluguel existe e confere se o valor é igual ao `total_amount` do aluguel. Se o valor for diferente, o pagamento é recusado com 400 e nada é salvo nem publicado.
+2. A API valida o valor (precisa ser maior que zero), verifica se o aluguel existe e confere se o valor é igual ao `total_amount` do aluguel. Se o valor for diferente, o pagamento é recusado com 422 e a mensagem de erro é retornada no campo `title`. Nada é salvo nem publicado.
 3. O pagamento é simulado como aprovado: o status vira `Approved` e `paid_at` recebe a data atual.
 4. O pagamento é salvo no PostgreSQL.
 5. Um evento é publicado na fila `payment.processed` do RabbitMQ.
@@ -74,7 +74,7 @@ O campo `Status` é numérico (1 = Pending, 2 = Approved, 3 = Declined).
 | GET | `/{id}` | Consulta um aluguel | 200 / 404 |
 | PUT | `/{id}` | Atualiza um aluguel | 204 / 404 |
 | DELETE | `/Rental/{id}` | Remove um aluguel (lógico) | 204 / 404 |
-| POST | `/Payment` | Simula o pagamento de um aluguel e publica o evento | 201 / 400 / 404 |
+| POST | `/Payment` | Simula o pagamento de um aluguel e publica o evento | 201 / 400 / 404 / 422 |
 | GET | `/Payment/{id}` | Consulta um pagamento | 200 / 404 |
 
 Exemplo de pagamento:
@@ -103,7 +103,7 @@ Consulta do pagamento:
 curl http://localhost:5000/Payment/1
 ```
 
-Os erros seguem o formato `ProblemDetails`, retornado pelo `GlobalExceptionMiddleware`: valor inválido gera 400 e aluguel inexistente gera 404.
+Os erros seguem o formato `ProblemDetails`, retornado pelo `GlobalExceptionMiddleware`: valor inválido gera 400, aluguel inexistente gera 404 e valor diferente do total do aluguel gera 422 com a mensagem no campo `title`.
 
 ## Pré-requisitos
 - Docker e Docker Compose (para rodar tudo em containers)

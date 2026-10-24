@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using CarRental.Automotor.Domain.Exceptions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
