@@ -14,7 +14,7 @@ namespace CarRental.Automotor.API.Mappers
                 dto.ExpectedEndDate,
                 null,
                 dto.DailyRate,
-                dto.TotalAmount,
+                Rental.CalculateTotalAmount(dto.DailyRate, dto.StartDate, dto.ExpectedEndDate),
                 RentalStatus.Pending
             );
 
@@ -27,7 +27,7 @@ namespace CarRental.Automotor.API.Mappers
                 dto.ExpectedEndDate,
                 null,
                 dto.DailyRate,
-                dto.TotalAmount,
+                Rental.CalculateTotalAmount(dto.DailyRate, dto.StartDate, dto.ExpectedEndDate),
                 dto.Status,
                 id
             );

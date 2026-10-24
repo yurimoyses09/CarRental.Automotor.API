@@ -10,5 +10,6 @@ namespace CarRental.Automotor.Infrastructure.Context
         public DbSet<Client> Clients => Set<Client>();
         public DbSet<Automobile> Automobiles => Set<Automobile>();
         public DbSet<Rental> Rentals => Set<Rental>();
+        public DbSet<Payment> Payments => Set<Payment>();
     }
 }

@@ -14,6 +14,7 @@ COPY src/CarRental.Automotor.API/CarRental.Automotor.API.csproj CarRental.Automo
 COPY src/CarRental.Automotor.Application/CarRental.Automotor.Application.csproj CarRental.Automotor.Application/
 COPY src/CarRental.Automotor.Domain/CarRental.Automotor.Domain.csproj CarRental.Automotor.Domain/
 COPY src/CarRental.Automotor.Infrastructure/CarRental.Automotor.Infrastructure.csproj CarRental.Automotor.Infrastructure/
+COPY src/CarRental.Automotor.Tests/CarRental.Automotor.Tests.csproj CarRental.Automotor.Tests/
 
 # Restore
 RUN dotnet restore

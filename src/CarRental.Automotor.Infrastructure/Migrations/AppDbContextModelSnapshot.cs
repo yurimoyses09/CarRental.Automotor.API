@@ -176,6 +176,50 @@ namespace CarRental.Automotor.Infrastructure.Migrations
                     b.ToTable("tb_rental");
                 });
 
+            modelBuilder.Entity("CarRental.Automotor.Domain.Entities.Payment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("amount");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTimeOffset>("DeleteAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("delete_at");
+
+                    b.Property<DateTimeOffset?>("PaidAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("paid_at");
+
+                    b.Property<int>("RentalId")
+                        .HasColumnType("integer")
+                        .HasColumnName("rental_id");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("payment_status");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RentalId");
+
+                    b.ToTable("tb_payment");
+                });
+
             modelBuilder.Entity("CarRental.Automotor.Domain.Entities.Rental", b =>
                 {
                     b.HasOne("CarRental.Automotor.Domain.Entities.Automobile", "Automobile")
@@ -193,6 +237,17 @@ namespace CarRental.Automotor.Infrastructure.Migrations
                     b.Navigation("Automobile");
 
                     b.Navigation("Client");
+                });
+
+            modelBuilder.Entity("CarRental.Automotor.Domain.Entities.Payment", b =>
+                {
+                    b.HasOne("CarRental.Automotor.Domain.Entities.Rental", "Rental")
+                        .WithMany()
+                        .HasForeignKey("RentalId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Rental");
                 });
 #pragma warning restore 612, 618
         }
