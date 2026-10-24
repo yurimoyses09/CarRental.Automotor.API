@@ -38,7 +38,7 @@ A exclusão é lógica: o registro recebe uma data em `delete_at` e não é remo
 
 ### Fluxo de pagamento
 1. O cliente envia `POST /Payment` com o `rental_id` e o `amount`.
-2. A API valida o valor (precisa ser maior que zero) e verifica se o aluguel existe.
+2. A API valida o valor (precisa ser maior que zero), verifica se o aluguel existe e confere se o valor é igual ao `total_amount` do aluguel. Se o valor for diferente, o pagamento é recusado com 400 e nada é salvo nem publicado.
 3. O pagamento é simulado como aprovado: o status vira `Approved` e `paid_at` recebe a data atual.
 4. O pagamento é salvo no PostgreSQL.
 5. Um evento é publicado na fila `payment.processed` do RabbitMQ.

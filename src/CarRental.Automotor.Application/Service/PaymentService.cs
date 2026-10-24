@@ -26,8 +26,11 @@ namespace CarRental.Automotor.Application.Service
             if (payment.Amount <= 0)
                 throw new ArgumentException("The payment amount must be greater than zero.");
 
-            if (await _rentalRepository.GetByIdAsync(payment.RentalId) is null)
-                throw new KeyNotFoundException($"Rental {payment.RentalId} was not found.");
+            var rental = await _rentalRepository.GetByIdAsync(payment.RentalId)
+                ?? throw new KeyNotFoundException($"Rental {payment.RentalId} was not found.");
+
+            if (payment.Amount != rental.TotalAmount)
+                throw new ArgumentException("The payment amount must be equal to the rental total amount.");
 
             // Simulação: o pagamento é aprovado imediatamente.
             payment.Approve();
