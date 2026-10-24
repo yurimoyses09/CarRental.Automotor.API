@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace CarRental.Automotor.Infrastructure.Middlewares
 {
@@ -55,7 +56,8 @@ namespace CarRental.Automotor.Infrastructure.Middlewares
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = statusCode;
 
-            await context.Response.WriteAsJsonAsync(payload);
+            var json = JsonSerializer.Serialize(payload, JsonSerializerOptions.Web);
+            await context.Response.WriteAsync(json);
         }
 
         private static ProblemDetails CreateProblemDetails(HttpContext context, string title)
