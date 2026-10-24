@@ -1,6 +1,7 @@
 ﻿using CarRental.Automotor.Application.IRepository;
 using CarRental.Automotor.Application.IService;
 using CarRental.Automotor.Application.Service;
+using CarRental.Automotor.Infrastructure.Event;
 using CarRental.Automotor.Infrastructure.Repository;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,6 +19,13 @@ namespace CarRental.Automotor.Infrastructure.DependencyInjection
 
             services.AddScoped<IRentalService, RentalService>();
             services.AddScoped<IRentalRepository, RentalRepository>();
+
+            services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IPaymentRepository, PaymentRepository>();
+            services.AddScoped<IPaymentEventPublisher, RabbitMqPaymentEventPublisher>();
+
+            services.AddOptions<RabbitMqSettings>()
+                .BindConfiguration(RabbitMqSettings.SectionName);
 
             return services;
 

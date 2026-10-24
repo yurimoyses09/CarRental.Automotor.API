@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using CarRental.Automotor.Domain.Exceptions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace CarRental.Automotor.Infrastructure.Middlewares
 {
@@ -49,10 +51,13 @@ namespace CarRental.Automotor.Infrastructure.Middlewares
                 )
             };
 
+            payload.Status = statusCode;
+
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = statusCode;
 
-            await context.Response.WriteAsync(payload.ToString());
+            var json = JsonSerializer.Serialize(payload, JsonSerializerOptions.Default);
+            await context.Response.WriteAsync(json);
         }
 
         private static ProblemDetails CreateProblemDetails(HttpContext context, string title)

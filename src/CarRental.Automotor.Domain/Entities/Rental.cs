@@ -1,4 +1,5 @@
 ﻿using CarRental.Automotor.Domain.Enums;
+using CarRental.Automotor.Domain.Exceptions;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -32,6 +33,17 @@ namespace CarRental.Automotor.Domain.Entities
             DailyRate = dailyRate;
             TotalAmount = totalAmount;
             Status = status;
+        }
+
+        public static decimal CalculateTotalAmount(decimal dailyRate, DateTimeOffset startDate, DateTimeOffset expectedEndDate)
+        {
+            if (expectedEndDate < startDate)
+                throw new BusinessException("The expected end date must not be before the start date.");
+
+            // Dias parciais são cobrados como dia inteiro; mínimo de 1 dia.
+            var days = Math.Max(1, (int)Math.Ceiling((expectedEndDate - startDate).TotalDays));
+
+            return dailyRate * days;
         }
 
         [Column("client_id")]
