@@ -23,6 +23,9 @@ namespace CarRental.Automotor.API.DataTransferObjects
         [JsonPropertyName("daily_rate")]
         public decimal DailyRate { get; set; }
 
+        [JsonPropertyName("total_amount")]
+        public decimal? TotalAmount { get; set; }
+
         [JsonPropertyName("status")]
         public RentalStatus Status { get; set; }
     }
