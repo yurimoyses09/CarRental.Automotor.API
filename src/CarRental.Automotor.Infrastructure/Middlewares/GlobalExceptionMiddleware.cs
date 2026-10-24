@@ -50,10 +50,12 @@ namespace CarRental.Automotor.Infrastructure.Middlewares
                 )
             };
 
+            payload.Status = statusCode;
+
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = statusCode;
 
-            await context.Response.WriteAsync(payload.ToString());
+            await context.Response.WriteAsJsonAsync(payload);
         }
 
         private static ProblemDetails CreateProblemDetails(HttpContext context, string title)
