@@ -1,8 +1,10 @@
 using CarRental.Automotor.Application.IRepository;
 using CarRental.Automotor.Domain.Entities;
 using CarRental.Automotor.Domain.Enums;
+using CarRental.Automotor.Domain.Exceptions;
 using CarRental.Automotor.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace CarRental.Automotor.Infrastructure.Repository
 {
@@ -18,7 +20,16 @@ namespace CarRental.Automotor.Infrastructure.Repository
         public async Task<Payment> CreateAsync(Payment obj)
         {
             await _context.Payments.AddAsync(obj);
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
+            {
+                // Violação do índice único: outra requisição pagou o aluguel primeiro.
+                throw new BusinessException("This rental has already been paid.");
+            }
 
             return obj;
         }

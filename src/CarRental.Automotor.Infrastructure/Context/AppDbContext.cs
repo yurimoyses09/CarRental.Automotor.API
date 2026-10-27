@@ -11,5 +11,14 @@ namespace CarRental.Automotor.Infrastructure.Context
         public DbSet<Automobile> Automobiles => Set<Automobile>();
         public DbSet<Rental> Rentals => Set<Rental>();
         public DbSet<Payment> Payments => Set<Payment>();
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            // Um aluguel só pode ter um pagamento aprovado (não excluído).
+            modelBuilder.Entity<Payment>()
+                .HasIndex(p => p.RentalId)
+                .IsUnique()
+                .HasFilter("payment_status = 2 AND delete_at = '0001-01-01 00:00:00+00'");
+        }
     }
 }
