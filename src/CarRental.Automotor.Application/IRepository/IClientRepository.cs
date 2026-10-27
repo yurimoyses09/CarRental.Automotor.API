@@ -4,6 +4,6 @@ namespace CarRental.Automotor.Application.IRepository
 {
     public interface IClientRepository : IBaseRepository<Client>
     {
-
+        Task<bool> ExistsByDocumentAsync(string document);
     }
 }
