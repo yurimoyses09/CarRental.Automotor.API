@@ -33,6 +33,9 @@ namespace CarRental.Automotor.Application.Service
             if (payment.Amount != rental.TotalAmount)
                 throw new BusinessException("The payment amount must be equal to the rental total amount.");
 
+            if (await _paymentRepository.ExistsApprovedByRentalIdAsync(payment.RentalId))
+                throw new BusinessException("This rental has already been paid.");
+
             // Simulação: o pagamento é aprovado imediatamente.
             payment.Approve();
 

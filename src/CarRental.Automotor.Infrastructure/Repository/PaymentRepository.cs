@@ -1,5 +1,6 @@
 using CarRental.Automotor.Application.IRepository;
 using CarRental.Automotor.Domain.Entities;
+using CarRental.Automotor.Domain.Enums;
 using CarRental.Automotor.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +22,10 @@ namespace CarRental.Automotor.Infrastructure.Repository
 
             return obj;
         }
+
+        public async Task<bool> ExistsApprovedByRentalIdAsync(int rentalId) =>
+            await _context.Payments.AnyAsync(p =>
+                p.RentalId == rentalId && p.Status == PaymentStatus.Approved);
 
         public async Task<int> DeleteByIdAsync(int id) =>
             await _context.Payments.Where(x => x.Id == id)
