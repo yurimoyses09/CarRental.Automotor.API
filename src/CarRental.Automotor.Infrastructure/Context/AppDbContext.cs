@@ -19,6 +19,17 @@ namespace CarRental.Automotor.Infrastructure.Context
                 .HasIndex(p => p.RentalId)
                 .IsUnique()
                 .HasFilter("payment_status = 2 AND delete_at = '0001-01-01 00:00:00+00'");
+
+            // Documento de cliente e placa de automóvel não podem se repetir entre registros não excluídos.
+            modelBuilder.Entity<Client>()
+                .HasIndex(c => c.Document)
+                .IsUnique()
+                .HasFilter("delete_at = '0001-01-01 00:00:00+00'");
+
+            modelBuilder.Entity<Automobile>()
+                .HasIndex(a => a.Plate)
+                .IsUnique()
+                .HasFilter("delete_at = '0001-01-01 00:00:00+00'");
         }
     }
 }
