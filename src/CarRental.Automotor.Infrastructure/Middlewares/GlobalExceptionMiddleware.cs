@@ -47,11 +47,12 @@ namespace CarRental.Automotor.Infrastructure.Middlewares
                 ),
                 _ => (
                     StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails(context, "An unexpected error occurred.")
+                    CreateProblemDetails(context, "Ocorreu um erro inesperado no servidor. Tente novamente em instantes.")
                 )
             };
 
             payload.Status = statusCode;
+            payload.Extensions["traceId"] = context.TraceIdentifier;
 
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = statusCode;
