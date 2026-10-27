@@ -215,7 +215,10 @@ namespace CarRental.Automotor.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RentalId");
+                    b.HasIndex("RentalId")
+                        .IsUnique()
+                        .HasFilter("payment_status = 2 AND delete_at = '0001-01-01 00:00:00+00'")
+                        .HasDatabaseName("IX_tb_payment_rental_id");
 
                     b.ToTable("tb_payment");
                 });
