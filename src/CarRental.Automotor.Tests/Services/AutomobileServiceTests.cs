@@ -27,5 +27,17 @@ namespace CarRental.Automotor.Tests.Services
 
             _repository.Verify(r => r.CreateAsync(It.IsAny<Automobile>()), Times.Never);
         }
+
+        [Fact]
+        public async Task CreateAsync_WhenPlateIsNew_SavesAutomobile()
+        {
+            _repository.Setup(r => r.ExistsByPlateAsync("ABC1D23")).ReturnsAsync(false);
+            _repository.Setup(r => r.CreateAsync(It.IsAny<Automobile>())).ReturnsAsync((Automobile a) => a);
+
+            var result = await _service.CreateAsync(new Automobile("Onix", "2020", "ABC1D23", "Flex", "Branco"));
+
+            Assert.Equal("ABC1D23", result.Plate);
+            _repository.Verify(r => r.CreateAsync(It.IsAny<Automobile>()), Times.Once);
+        }
     }
 }

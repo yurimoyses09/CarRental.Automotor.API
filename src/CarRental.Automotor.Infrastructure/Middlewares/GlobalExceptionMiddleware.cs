@@ -25,7 +25,10 @@ namespace CarRental.Automotor.Infrastructure.Middlewares
 
         public async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
-            _logger.LogError(exception, "Unhandled exception");
+            if (exception is BusinessException)
+                _logger.LogWarning("Business rule violation: {Message}", exception.Message);
+            else
+                _logger.LogError(exception, "Unhandled exception");
 
             var (statusCode, payload) = exception switch
             {
@@ -47,11 +50,12 @@ namespace CarRental.Automotor.Infrastructure.Middlewares
                 ),
                 _ => (
                     StatusCodes.Status500InternalServerError,
-                    CreateProblemDetails(context, "An unexpected error occurred.")
+                    CreateProblemDetails(context, "Ocorreu um erro inesperado no servidor. Tente novamente em instantes.")
                 )
             };
 
             payload.Status = statusCode;
+            payload.Extensions["traceId"] = context.TraceIdentifier;
 
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = statusCode;
