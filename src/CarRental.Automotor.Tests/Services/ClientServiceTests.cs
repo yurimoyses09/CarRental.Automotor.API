@@ -26,5 +26,17 @@ namespace CarRental.Automotor.Tests.Services
 
             _repository.Verify(r => r.CreateAsync(It.IsAny<Client>()), Times.Never);
         }
+
+        [Fact]
+        public async Task CreateAsync_WhenDocumentIsNew_SavesClient()
+        {
+            _repository.Setup(r => r.ExistsByDocumentAsync("456")).ReturnsAsync(false);
+            _repository.Setup(r => r.CreateAsync(It.IsAny<Client>())).ReturnsAsync((Client c) => c);
+
+            var result = await _service.CreateAsync(new Client("Bruno", 40, "456"));
+
+            Assert.Equal("456", result.Document);
+            _repository.Verify(r => r.CreateAsync(It.IsAny<Client>()), Times.Once);
+        }
     }
 }
