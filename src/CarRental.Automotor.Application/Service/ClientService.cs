@@ -1,6 +1,7 @@
 ﻿using CarRental.Automotor.Application.IRepository;
 using CarRental.Automotor.Application.IService;
 using CarRental.Automotor.Domain.Entities;
+using CarRental.Automotor.Domain.Exceptions;
 
 namespace CarRental.Automotor.Application.Service
 {
@@ -13,8 +14,13 @@ namespace CarRental.Automotor.Application.Service
             _clientRepository = clienteRepository;
         }
 
-        public async Task<Client> CreateAsync(Client cliente) 
-            => await _clientRepository.CreateAsync(cliente);
+        public async Task<Client> CreateAsync(Client cliente)
+        {
+            if (await _clientRepository.ExistsByDocumentAsync(cliente.Document))
+                throw new BusinessException("A client with this document already exists.");
+
+            return await _clientRepository.CreateAsync(cliente);
+        }
 
         public async Task<int> DeleteByIdAsync(int id) =>
             await _clientRepository.DeleteByIdAsync(id);

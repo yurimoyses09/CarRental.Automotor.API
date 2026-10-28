@@ -33,7 +33,7 @@ namespace CarRental.Automotor.API.Controllers
             return Ok(ClientMapper.ToDto(result));
         }
 
-        [HttpPut("/{id:int}")]
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, UpdateClientDTO dto)
         {
             var entity = ClientMapper.ToEntity(dto, id);
