@@ -70,6 +70,11 @@ namespace CarRental.Automotor.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Plate")
+                        .IsUnique()
+                        .HasDatabaseName("IX_tb_automobile_plate")
+                        .HasFilter("delete_at = '0001-01-01 00:00:00+00'");
+
                     b.ToTable("tb_automobile");
                 });
 
@@ -109,6 +114,11 @@ namespace CarRental.Automotor.Infrastructure.Migrations
                         .HasColumnName("updated_at");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Document")
+                        .IsUnique()
+                        .HasDatabaseName("IX_tb_client_document")
+                        .HasFilter("delete_at = '0001-01-01 00:00:00+00'");
 
                     b.ToTable("tb_client");
                 });
@@ -215,7 +225,10 @@ namespace CarRental.Automotor.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RentalId");
+                    b.HasIndex("RentalId")
+                        .IsUnique()
+                        .HasFilter("payment_status = 2 AND delete_at = '0001-01-01 00:00:00+00'")
+                        .HasDatabaseName("IX_tb_payment_rental_id");
 
                     b.ToTable("tb_payment");
                 });

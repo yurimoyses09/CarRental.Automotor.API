@@ -71,6 +71,18 @@ namespace CarRental.Automotor.Tests.Services
         }
 
         [Fact]
+        public async Task CreateAsync_WhenRentalAlreadyPaid_ThrowsBusinessExceptionAndDoesNotSave()
+        {
+            _rentalRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(CreateRental(1));
+            _paymentRepository.Setup(r => r.ExistsApprovedByRentalIdAsync(1)).ReturnsAsync(true);
+
+            await Assert.ThrowsAsync<BusinessException>(() => _service.CreateAsync(new Payment(1, 300m)));
+
+            _paymentRepository.Verify(r => r.CreateAsync(It.IsAny<Payment>()), Times.Never);
+            _eventPublisher.Verify(p => p.PublishPaymentProcessedAsync(It.IsAny<PaymentProcessedEvent>()), Times.Never);
+        }
+
+        [Fact]
         public async Task CreateAsync_WhenAmountIsNotPositive_ThrowsArgumentException()
         {
             await Assert.ThrowsAsync<ArgumentException>(() => _service.CreateAsync(new Payment(1, 0m)));

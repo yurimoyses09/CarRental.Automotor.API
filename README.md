@@ -4,7 +4,7 @@ API para gerenciar uma locadora de automóveis: cadastro de clientes e automóve
 
 ## Status
 - Status do projeto: Em desenvolvimento (protótipo com pagamento simulado)
-- Última atualização: 2026-10-23
+- Última atualização: 2026-10-27
 
 ## Tecnologias
 - Linguagem: C# (.NET 8)
@@ -24,21 +24,36 @@ API para gerenciar uma locadora de automóveis: cadastro de clientes e automóve
 - [x] Criação, consulta, atualização e remoção lógica de aluguéis
 - [x] Simulação de pagamento de aluguel, com consulta por ID
 - [x] Publicação de evento no RabbitMQ a cada pagamento processado
+- [x] Regras de unicidade: documento de cliente, placa de automóvel e pagamento por aluguel
 - [ ] Integração com gateway de pagamento real
 
 ## Como funciona
 
 ### Entidades
-- **Client**: nome, idade e documento.
-- **Automobile**: modelo, ano de fabricação, placa, tipo de combustível e cor.
+- **Client**: nome, idade e documento. O documento é único entre clientes não excluídos.
+- **Automobile**: modelo, ano de fabricação, placa, tipo de combustível e cor. A placa é única entre automóveis não excluídos.
 - **Rental**: cliente, automóvel, datas de início e previsão de devolução, diária e status (`Active`, `Completed`, `Canceled`, `Pending`). O valor total é calculado pela API: `diária × dias`, em que dias parciais contam como dia inteiro e o mínimo é 1 dia. Se a devolução prevista for anterior à retirada, o aluguel é recusado com 422. O cálculo não considera atrasos nem `actual_end_date`.
 - **Payment**: aluguel associado, valor, status (`Pending`, `Approved`, `Declined`) e data do pagamento.
 
-A exclusão é lógica: o registro recebe uma data em `delete_at` e não é removido do banco.
+A exclusão é lógica: o registro recebe uma data em `delete_at` e não é removido do banco. Registros excluídos não bloqueiam novos cadastros com o mesmo documento ou placa.
+
+## Regras de negócio
+
+| Regra | Onde é verificada | Resposta se violada |
+|---|---|---|
+| Valor do pagamento precisa ser maior que zero | `PaymentService` | 400 |
+| O aluguel do pagamento precisa existir | `PaymentService` | 404 |
+| O valor do pagamento precisa ser igual ao total do aluguel | `PaymentService` | 422 |
+| Um aluguel só pode ter um pagamento aprovado | `PaymentService` e índice único no banco | 422 |
+| Não pode haver dois clientes com o mesmo documento | `ClientService` e índice único no banco | 422 |
+| Não pode haver dois automóveis com a mesma placa | `AutomobileService` e índice único no banco | 422 |
+| Devolução prevista não pode ser anterior à retirada | `Rental.CalculateTotalAmount` | 422 |
+
+Cada regra de unicidade é verificada em duas camadas. A aplicação faz a checagem antes de salvar e devolve uma mensagem clara. O banco tem um índice único parcial, que garante a regra mesmo quando duas requisições chegam ao mesmo tempo. Se o banco rejeitar o registro, a violação é convertida no mesmo erro 422.
 
 ### Fluxo de pagamento
 1. O cliente envia `POST /Payment` com o `rental_id` e o `amount`.
-2. A API valida o valor (precisa ser maior que zero), verifica se o aluguel existe e confere se o valor é igual ao `total_amount` do aluguel. Se o valor for diferente, o pagamento é recusado com 422 e a mensagem de erro é retornada no campo `title`. Nada é salvo nem publicado.
+2. A API valida o valor (precisa ser maior que zero), verifica se o aluguel existe, confere se o valor é igual ao `total_amount` do aluguel e se o aluguel ainda não tem pagamento aprovado. Se alguma validação falhar, nada é salvo nem publicado.
 3. O pagamento é simulado como aprovado: o status vira `Approved` e `paid_at` recebe a data atual.
 4. O pagamento é salvo no PostgreSQL.
 5. Um evento é publicado na fila `payment.processed` do RabbitMQ.
@@ -62,17 +77,17 @@ O campo `Status` é numérico (1 = Pending, 2 = Approved, 3 = Declined).
 
 | Método | Rota | Descrição | Resposta |
 |---|---|---|---|
-| POST | `/Client` | Cria um cliente | 201 |
+| POST | `/Client` | Cria um cliente | 201 / 422 |
 | GET | `/Client/{id}` | Consulta um cliente | 200 / 404 |
-| PUT | `/{id}` | Atualiza um cliente | 204 / 404 |
+| PUT | `/Client/{id}` | Atualiza um cliente | 204 / 404 / 422 |
 | DELETE | `/Client/{id}` | Remove um cliente (lógico) | 204 / 404 |
-| POST | `/Automobile` | Cria um automóvel | 201 |
+| POST | `/Automobile` | Cria um automóvel | 201 / 400 / 422 |
 | GET | `/Automobile/{id}` | Consulta um automóvel | 200 / 404 |
-| PUT | `/{id}` | Atualiza um automóvel | 204 / 404 |
+| PUT | `/Automobile/{id}` | Atualiza um automóvel | 204 / 404 / 422 |
 | DELETE | `/Automobile/{id}` | Remove um automóvel (lógico) | 204 / 404 |
 | POST | `/Rental` | Cria um aluguel (o total é calculado pela API) | 201 / 422 |
-| GET | `/{id}` | Consulta um aluguel | 200 / 404 |
-| PUT | `/{id}` | Atualiza um aluguel | 204 / 404 |
+| GET | `/Rental/{id}` | Consulta um aluguel | 200 / 404 |
+| PUT | `/Rental/{id}` | Atualiza um aluguel | 204 / 404 |
 | DELETE | `/Rental/{id}` | Remove um aluguel (lógico) | 204 / 404 |
 | POST | `/Payment` | Simula o pagamento de um aluguel e publica o evento | 201 / 400 / 404 / 422 |
 | GET | `/Payment/{id}` | Consulta um pagamento | 200 / 404 |
@@ -103,7 +118,24 @@ Consulta do pagamento:
 curl http://localhost:5000/Payment/1
 ```
 
-Os erros seguem o formato `ProblemDetails`, retornado pelo `GlobalExceptionMiddleware`: valor inválido gera 400, aluguel inexistente gera 404 e valor diferente do total do aluguel gera 422 com a mensagem no campo `title`.
+### Erros
+
+Os erros seguem o formato `ProblemDetails`, retornado pelo `GlobalExceptionMiddleware`. O campo `title` traz a mensagem para o cliente.
+
+- **400**: dados inválidos (`ArgumentException`), por exemplo, valor de pagamento não positivo.
+- **404**: recurso não encontrado (`KeyNotFoundException`).
+- **422**: regra de negócio violada (`BusinessException`). Exemplos: documento ou placa já cadastrados, aluguel já pago, valor diferente do total.
+- **500**: erro inesperado. A resposta traz uma mensagem genérica e um `traceId`, que permite localizar a exceção nos logs. O detalhe técnico não é exposto ao cliente.
+
+Exemplo de erro de regra de negócio:
+
+```json
+{
+  "title": "A client with this document already exists.",
+  "status": 422,
+  "instance": "/Client"
+}
+```
 
 ## Pré-requisitos
 - Docker e Docker Compose (para rodar tudo em containers)
@@ -156,10 +188,12 @@ Para acompanhar os eventos: no painel do RabbitMQ, abra a aba **Queues** e a fil
 No Docker Compose, essas chaves são sobrescritas por variáveis de ambiente (por exemplo, `RabbitMq__HostName=rabbitmq`). As credenciais do `compose.yaml` são apenas para desenvolvimento.
 
 ## Testes
-Os testes unitários ficam em `src/CarRental.Automotor.Tests` e cobrem:
-- regras da entidade `Payment` (estado inicial e aprovação);
-- `PaymentService` (aprovação, publicação do evento, aluguel inexistente, valor inválido e consulta);
-- `PaymentMapper` (conversão entre DTOs e entidade).
+Os testes unitários ficam em `src/CarRental.Automotor.Tests` e são divididos por área:
+
+- **Domínio** (`Domain/`): regras das entidades. `RentalCalculateTotalAmountTests` cobre o cálculo do valor do aluguel (dias exatos, dia parcial, mínimo de 1 dia e devolução antes da retirada). `PaymentTests` e `RentalTests` cobrem o estado inicial e as transições das entidades.
+- **Serviços** (`Services/`): regras da camada de aplicação, com repositórios mockados. `PaymentServiceTests` cobre aprovação, publicação de evento, aluguel inexistente, valor inválido, valor diferente do total e pagamento duplicado. `ClientServiceTests` e `AutomobileServiceTests` cobrem a bloqueio de documento e placa repetidos e o cadastro com dados novos.
+- **Mapeamento** (`Mappers/`): conversão entre DTOs e entidades (`PaymentMapperTests`).
+- **Middleware** (`Middlewares/`): `GlobalExceptionMiddlewareTests` verifica qual status HTTP e qual mensagem cada tipo de exceção gera, e que o detalhe técnico de um erro 500 não aparece para o cliente.
 
 Para executar:
 
@@ -175,8 +209,8 @@ O pipeline de CI executa os testes em cada push para branches `feature/**` e `de
 src/
 ├── CarRental.Automotor.API/             # Controllers, DTOs, mappers e Program.cs
 ├── CarRental.Automotor.Application/     # Interfaces, serviços e eventos da aplicação
-├── CarRental.Automotor.Domain/          # Entidades e enums
-├── CarRental.Automotor.Infrastructure/  # EF Core, repositórios, migrations e RabbitMQ
+├── CarRental.Automotor.Domain/          # Entidades, enums e exceções de negócio
+├── CarRental.Automotor.Infrastructure/  # EF Core, repositórios, migrations, middleware e RabbitMQ
 └── CarRental.Automotor.Tests/           # Testes unitários (xUnit e Moq)
 .github/workflows/                       # Pipelines de build, teste e publicação da imagem
 Dockerfile                               # Imagem da API
@@ -184,11 +218,14 @@ compose.yaml                             # API, PostgreSQL e RabbitMQ
 ```
 
 ## Problemas conhecidos
-- As rotas de `GET` e `PUT` de `Rental`, `Client` e `Automobile` usam caminho absoluto (`/{id}`) em vez de `/Rental/{id}`, `/Client/{id}` e `/Automobile/{id}`. Isso não foi alterado neste projeto para não quebrar quem já usa essas rotas.
 - O pagamento é salvo antes da publicação do evento e não há outbox. Se o RabbitMQ estiver indisponível, o pagamento fica salvo, mas a requisição retorna erro 500.
 - O pagamento é apenas simulado: todo pagamento é aprovado e não há integração com gateway.
 - Não há consumidor da fila; a API só publica os eventos.
 - Uma conexão com o RabbitMQ é aberta a cada publicação. Isso é simples, mas não é o mais eficiente para produção.
+- A placa é comparada exatamente como foi digitada. `abc1d23` e `ABC1D23` são aceitas como placas diferentes. A normalização para maiúsculas e sem hífen ainda não foi implementada.
+- Um cliente excluído mantém o documento livre, então um novo cadastro com o mesmo documento é permitido. Ainda não existe reativação de registros excluídos.
+- As rotas de `Rental`, `Client` e `Automobile` mudaram para o padrão `/{Controller}/{id}`. Clientes que usavam `/{id}` na raiz para PUT ou GET de aluguel precisam ser atualizados.
+- Não há autenticação nem autorização nos endpoints.
 
 ## Licença
 A definir.

@@ -22,7 +22,7 @@ namespace CarRental.Automotor.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
         }
 
-        [HttpGet("/{id:int}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
             var result = await _service.GetByIdAsync(id);
@@ -33,7 +33,7 @@ namespace CarRental.Automotor.API.Controllers
             return Ok(RentalMapper.ToDto(result));
         }
 
-        [HttpPut("/{id:int}")]
+        [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, UpdateRentalDTO dto)
         {
             var entity = RentalMapper.ToEntity(dto, id);
