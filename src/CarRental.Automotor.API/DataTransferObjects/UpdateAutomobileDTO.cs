@@ -5,18 +5,18 @@ namespace CarRental.Automotor.API.DataTransferObjects
     public class UpdateAutomobileDTO
     {
         [JsonPropertyName("model")]
-        public string Model { get; private set; }
+        public string Model { get; set; }
 
         [JsonPropertyName("year_manufacture")]
-        public string YearManufacture { get; private set; }
+        public string YearManufacture { get; set; }
 
         [JsonPropertyName("plate")]
-        public string Plate { get; private set; }
+        public string Plate { get; set; }
 
         [JsonPropertyName("fuel_type")]
-        public string FuelType { get; private set; }
+        public string FuelType { get; set; }
 
         [JsonPropertyName("color")]
-        public string Color { get; private set; }
+        public string Color { get; set; }
     }
 }
