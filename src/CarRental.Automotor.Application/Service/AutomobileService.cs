@@ -1,6 +1,7 @@
 ﻿using CarRental.Automotor.Application.IRepository;
 using CarRental.Automotor.Application.IService;
 using CarRental.Automotor.Domain.Entities;
+using CarRental.Automotor.Domain.Exceptions;
 
 namespace CarRental.Automotor.Application.Service
 {
@@ -13,8 +14,13 @@ namespace CarRental.Automotor.Application.Service
             _repository = repository;
         }
 
-        public async Task<Automobile> CreateAsync(Automobile Automobile) 
-            => await _repository.CreateAsync(Automobile);
+        public async Task<Automobile> CreateAsync(Automobile Automobile)
+        {
+            if (await _repository.ExistsByPlateAsync(Automobile.Plate))
+                throw new BusinessException("An automobile with this plate already exists.");
+
+            return await _repository.CreateAsync(Automobile);
+        }
 
         public async Task<int> DeleteByIdAsync(int id)
             => await _repository.DeleteByIdAsync(id);
